@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Sample SAM Template for S3 trigger
+
+  '
+Resources:
+  ProcessImageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Architectures:
+      - x86_64
+      Timeout: 800
+      MemorySize: 10240
+      ImageConfig:
+        Command:
+        - app.lambda_handler
+      Environment:
+        Variables:
+          DESTINATION_BUCKET: final-cog
+          AWS_ACCESS_KEY_ID: AKIAWEJRDA3QP2AW26EL
+          AWS_SECRET_ACCESS_KEY: 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
+          AWS_REGION: us-east-1
+      Policies:
+      - S3ReadPolicy:
+          BucketName:
+            Ref: SourceBucket
+      - S3CrudPolicy:
+          BucketName:
+            Ref: DestinationBucket
+      Events:
+        S3Trigger:
+          Type: S3
+          Properties:
+            Bucket:
+              Ref: SourceBucket
+            Events: s3:ObjectCreated:*
+      ImageUri: processimagefunction:python3.12-v1
+    Metadata:
+      DockerContext: /mnt/e/sih_project_cloud_server/lamda-testing/sam-dev-env/sam-app/hello_world
+      DockerTag: python3.12-v1
+      Dockerfile: Dockerfile
+      SamResourceId: ProcessImageFunction
+  SourceBucket:
+    Type: AWS::S3::Bucket
+  DestinationBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: final-cog

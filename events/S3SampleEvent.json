@@ -1,0 +1,23 @@
+{
+  "Records": [
+    {
+      "eventVersion": "2.0",
+      "eventSource": "aws:s3",
+      "awsRegion": "us-east-1",
+      "eventTime": "2023-12-25T00:00:00.000Z",
+      "eventName": "ObjectCreated:Put",
+      "s3": {
+        "s3SchemaVersion": "1.0",
+        "bucket": {
+          "name": "kdg-raw",
+          "arn": "arn:aws:s3:::source-bucket"
+        },
+        "object": {
+          "key": "3RIMG_04SEP2024_1015_L1B_STD_V01R00.h5",
+          "size": 1024,
+          "eTag": "d41d8cd98f00b204e9800998ecf8427e"
+        }
+      }
+    }
+  ]
+}
