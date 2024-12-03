@@ -13,7 +13,7 @@
           "arn": "arn:aws:s3:::source-bucket"
         },
         "object": {
-          "key": "3RIMG_04SEP2024_1015_L1B_STD_V01R00.h5",
+          "key": "3RIMG_04SEP2024_1345_L1B_STD_V01R00.h5",
           "size": 1024,
           "eTag": "d41d8cd98f00b204e9800998ecf8427e"
         }

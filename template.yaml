@@ -1,9 +1,15 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: >
-  Sample SAM Template for S3 trigger
+Description: INSAT-3D Processing with Rollback Disabled
+
+Globals:
+  Function:
+    AutoPublishAlias: live
+    DeploymentPreference:
+      Enabled: false
 
 Resources:
+  # Lambda Function first
   ProcessImageFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -14,49 +20,32 @@ Resources:
       MemorySize: 5240
       Environment:
         Variables:
-          AWS_DEFAULT_REGION: ap-south-1
-          DYNAMODB_TABLE: Files  # Match the actual table name
-          DYNAMODB_ENDPOINT: https://dynamodb.ap-south-1.amazonaws.com
+          REGION: us-east-1
+          DYNAMODB_TABLE: !Ref MetadataTable
+          DESTINATION_BUCKET: !Ref DestinationBucket
       Policies:
-        - Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - dynamodb:PutItem
-                - dynamodb:GetItem
-                - dynamodb:UpdateItem
-                - dynamodb:DeleteItem
-                - dynamodb:Query
-                - dynamodb:Scan
-              Resource: 
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/Files'
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MetadataTable
         - S3ReadPolicy:
-            BucketName: kdg-raw
+            BucketName: !Ref SourceBucket
         - S3CrudPolicy:
             BucketName: !Ref DestinationBucket
-      Events:
-        S3Trigger:
-          Type: S3
-          Properties:
-            Bucket: !Ref SourceBucket
-            Events: s3:ObjectCreated:*
     Metadata:
       Dockerfile: Dockerfile
       DockerContext: ./hello_world
       DockerTag: python3.9-v1
 
+  # Basic resources without triggers
   SourceBucket:
     Type: AWS::S3::Bucket
     
   DestinationBucket:
     Type: AWS::S3::Bucket
-    Properties:
-      BucketName: final-cog
 
   MetadataTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: Files
+      TableName: !Sub "${AWS::StackName}-metadata"
       AttributeDefinitions:
         - AttributeName: Unique_Id
           AttributeType: S
@@ -67,3 +56,18 @@ Resources:
           KeyType: HASH
         - AttributeName: acquisition_timestamp
           KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+
+Outputs:
+  SourceBucketName:
+    Description: "Source S3 Bucket"
+    Value: !Ref SourceBucket
+  DestinationBucketName:
+    Description: "Destination S3 Bucket"
+    Value: !Ref DestinationBucket
+  MetadataTableName:
+    Description: "DynamoDB Table"
+    Value: !Ref MetadataTable
+  FunctionArn:
+    Description: "Lambda Function ARN"
+    Value: !GetAtt ProcessImageFunction.Arn
